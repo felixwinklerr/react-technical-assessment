@@ -53,10 +53,16 @@ export const getProducts = (req, res, next) => {
     const endIndex = startIndex + parseInt(limit);
     const paginatedProducts = products.slice(startIndex, endIndex);
 
+    // Transform products to include single image field for frontend compatibility
+    const transformedProducts = paginatedProducts.map(p => ({
+      ...p,
+      image: p.images?.[0] || p.image || 'https://via.placeholder.com/300'
+    }));
+
     res.json({
       success: true,
       data: {
-        products: paginatedProducts,
+        products: transformedProducts,
         pagination: {
           page: parseInt(page),
           limit: parseInt(limit),
@@ -84,11 +90,17 @@ export const getProductById = (req, res, next) => {
     // Get reviews for this product
     const reviews = db.getReviewsByProduct(req.params.id);
 
+    // Transform product to include single image field for frontend compatibility
+    const transformedProduct = {
+      ...product,
+      image: product.images?.[0] || product.image || 'https://via.placeholder.com/300',
+      reviews
+    };
+
     res.json({
       success: true,
       data: {
-        ...product,
-        reviews
+        product: transformedProduct
       }
     });
   } catch (error) {

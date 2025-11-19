@@ -37,7 +37,7 @@ export const register = async (req, res, next) => {
     // Generate token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'default-development-secret-key-change-in-production',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
@@ -82,7 +82,7 @@ export const login = async (req, res, next) => {
     // Generate token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'default-development-secret-key-change-in-production',
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 

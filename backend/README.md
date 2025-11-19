@@ -66,7 +66,11 @@ marketplace/
    npm install
    ```
 
-3. **Set up environment variables**
+3. **Set up environment variables (Optional for development)**
+   
+   The app has development fallback values, so you can skip this step for testing.
+   
+   For production or custom configuration:
    ```bash
    cp .env.example .env
    ```
