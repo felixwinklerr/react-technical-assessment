@@ -183,13 +183,38 @@ npm run build      # Build for production
 npm run preview    # Preview production build
 ```
 
-## 📚 Documentation
+## 🔧 Troubleshooting
 
-Additional documentation available:
-- `QUICKSTART.md` - Quick setup guide (5 minutes)
-- `DEPLOYMENT.md` - Production deployment guide
-- `backend/README.md` - Backend API documentation
-- `frontend/README.md` - Frontend setup and configuration
+### Common Issues
+
+**Port 3000 already in use:**
+```bash
+lsof -ti:3000 | xargs kill -9
+```
+
+**Port 5173 already in use:**
+```bash
+lsof -ti:5173 | xargs kill -9
+```
+
+**Dependencies issues:**
+```bash
+# Backend
+cd backend && rm -rf node_modules package-lock.json && npm install
+
+# Frontend
+cd frontend && rm -rf node_modules package-lock.json && npm install
+```
+
+**Cannot connect to backend:**
+- Ensure backend is running on port 3000
+- Check browser console for errors
+- Verify `http://localhost:3000/api/products` returns data
+
+**CORS errors:**
+- Backend is configured for `http://localhost:5173`
+- Ensure both servers are running
+- Clear browser cache and reload
 
 ## 🎨 Design Decisions
 
@@ -214,35 +239,93 @@ Additional documentation available:
 
 ## 🚀 Production Deployment
 
-### Build for Production
-
-**Frontend:**
-```bash
-cd frontend
-npm run build
-# Output in frontend/dist/
-```
-
-**Backend:**
-```bash
-cd backend
-npm start
-# Runs on port 3000
-```
-
 ### Environment Variables
-
-Create `.env` files based on `.env.example`:
 
 **Backend `.env`:**
 ```env
 PORT=3000
-JWT_SECRET=your-secret-key-here
+JWT_SECRET=your-secret-key-here  # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 NODE_ENV=production
+CORS_ORIGIN=https://your-frontend-domain.com
 ```
 
 **Frontend:**
-Update API URL in `src/services/api.js` for production
+Update API URL in `src/services/api.js`:
+```javascript
+const API_URL = process.env.VITE_API_URL || 'https://your-backend-domain.com/api';
+```
+
+### Deployment Options
+
+#### Option 1: Vercel (Frontend) + Render/Railway (Backend)
+
+**Frontend (Vercel):**
+1. Push to GitHub
+2. Import project in Vercel
+3. Set build command: `cd frontend && npm run build`
+4. Set output directory: `frontend/dist`
+5. Add environment variable: `VITE_API_URL`
+
+**Backend (Render/Railway):**
+1. Connect GitHub repository
+2. Set root directory: `backend`
+3. Set start command: `npm start`
+4. Add environment variables: `PORT`, `JWT_SECRET`, `CORS_ORIGIN`
+
+#### Option 2: Docker
+
+Create `docker-compose.yml`:
+```yaml
+version: '3.8'
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET}
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+```
+
+Deploy: `docker-compose up -d`
+
+#### Option 3: Traditional VPS/EC2
+
+**Backend:**
+```bash
+# On server
+git clone <repo-url>
+cd backend
+npm install --production
+pm2 start src/server.js --name marketplace-api
+```
+
+**Frontend:**
+```bash
+# Build locally
+cd frontend
+npm run build
+
+# Upload dist/ to server
+# Configure nginx to serve static files
+```
+
+### Security Checklist
+
+Before going live:
+- [ ] Change JWT_SECRET to secure random string
+- [ ] Enable HTTPS/SSL certificate
+- [ ] Configure CORS to specific origins (not `*`)
+- [ ] Enable rate limiting
+- [ ] Review and remove hardcoded credentials
+- [ ] Set up error monitoring (optional: Sentry)
+- [ ] Test on multiple devices and browsers
 
 ## 📝 License
 
